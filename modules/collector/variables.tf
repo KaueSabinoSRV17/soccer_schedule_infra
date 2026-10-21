@@ -21,3 +21,20 @@ variable "time_zone" {
   type    = string
   default = "America/Sao_Paulo"
 }
+
+variable "calendar_auth_mode" {
+  type    = string
+  default = "oauth"
+  validation {
+    condition     = contains(["oauth", "service_account"], var.calendar_auth_mode)
+    error_message = "Calendar authentication must be oauth or service_account."
+  }
+}
+variable "calendar_id" {
+  type    = string
+  default = "primary"
+  validation {
+    condition     = length(trimspace(var.calendar_id)) > 0
+    error_message = "A Calendar ID is required."
+  }
+}

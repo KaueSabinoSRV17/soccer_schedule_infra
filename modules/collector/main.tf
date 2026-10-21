@@ -6,6 +6,13 @@ resource "google_cloud_run_v2_job" "daily" {
 
   deletion_protection = true
 
+  lifecycle {
+    precondition {
+      condition     = var.calendar_auth_mode != "service_account" || lower(trimspace(var.calendar_id)) != "primary"
+      error_message = "Service-account authentication requires the shared calendar's explicit Calendar ID, not primary."
+    }
+  }
+
   template {
     task_count  = 1
     parallelism = 1
@@ -18,12 +25,15 @@ resource "google_cloud_run_v2_job" "daily" {
       containers {
         image   = var.image
         command = ["node", "dist/src/cli.js"]
-        args    = ["--non-interactive", "--sync-calendar"]
+        args    = ["--full-calendar-sync"]
 
         resources { limits = { cpu = "1", memory = "512Mi" } }
 
         dynamic "env" {
-          for_each = var.environment
+          for_each = merge(var.environment, {
+            GOOGLE_CALENDAR_AUTH_MODE = var.calendar_auth_mode
+            GOOGLE_CALENDAR_ID        = var.calendar_id
+          })
           content {
             name  = env.key
             value = env.value

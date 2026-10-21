@@ -20,26 +20,22 @@ inputs = {
   scheduler_service_account_email = dependency.core.outputs.scheduler_email
   schedule                        = "0 6 * * *"
   time_zone                       = "America/Sao_Paulo"
-  environment = {
-    SOCCER_TIMEZONE             = "America/Sao_Paulo"
-    GOOGLE_CALENDAR_ID          = "primary"
-    GOOGLE_CALENDAR_CREDENTIALS = "/var/secrets/google-calendar-oauth/client.json"
-    GOOGLE_CALENDAR_TOKEN       = "/var/secrets/google-calendar-token/token.json"
-  }
+  calendar_auth_mode              = local.config.calendar_auth_mode
+  calendar_id                     = local.config.calendar_id
+  environment = merge({
+    SOCCER_TIMEZONE = "America/Sao_Paulo"
+    }, local.config.calendar_auth_mode == "oauth" ? {
+    GOOGLE_CALENDAR_TOKEN = "/var/secrets/google-calendar-token/token.json"
+  } : {})
   secrets = {
     THESPORTSDB_API_KEY = { secret = "thesportsdb-api-key" }
     YOUTUBE_API_KEY     = { secret = "youtube-api-key" }
   }
-  secret_volumes = {
-    google-calendar-oauth = {
-      secret     = "google-calendar-oauth"
-      mount_path = "/var/secrets/google-calendar-oauth"
-      file_name  = "client.json"
-    }
+  secret_volumes = local.config.calendar_auth_mode == "oauth" ? {
     google-calendar-token = {
       secret     = "google-calendar-token"
       mount_path = "/var/secrets/google-calendar-token"
       file_name  = "token.json"
     }
-  }
+  } : {}
 }
