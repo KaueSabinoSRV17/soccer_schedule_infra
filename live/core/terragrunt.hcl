@@ -28,6 +28,7 @@ inputs = {
     "secretmanager.googleapis.com",
     "serviceusage.googleapis.com",
     "storage.googleapis.com",
+    "sts.googleapis.com",
     "youtube.googleapis.com",
   ]
   secret_ids = [
